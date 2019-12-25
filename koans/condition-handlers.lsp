@@ -22,24 +22,24 @@ error handling code from normal operational code."
 
 
 (define-test test-conditions-derive-from-types
-    "conditions inherit from base types"
-  (true-or-false? ___ (typep (make-condition 'minimal-error-cond)
-                             'minimal-error-cond))
+  "conditions inherit from base types"
+  (true-or-false? t (typep (make-condition 'minimal-error-cond)
+                           'minimal-error-cond))
 
-  (true-or-false? ___ (typep (make-condition 'minimal-error-cond)
-                             'error))
+  (true-or-false? t (typep (make-condition 'minimal-error-cond)
+                           'error))
 
-  (true-or-false? ___ (typep (make-condition 'minimal-error-cond)
+  (true-or-false? nil (typep (make-condition 'minimal-error-cond)
                              'warning))
 
-  (true-or-false? ___ (typep (make-condition 'minimal-warning-cond)
-                             'minimal-warning-cond))
+  (true-or-false? t (typep (make-condition 'minimal-warning-cond)
+                           'minimal-warning-cond))
 
-  (true-or-false? ___ (typep (make-condition 'minimal-warning-cond)
+  (true-or-false? nil (typep (make-condition 'minimal-warning-cond)
                              'error))
 
-  (true-or-false? ___ (typep (make-condition 'minimal-warning-cond)
-                             'warning)))
+  (true-or-false? t (typep (make-condition 'minimal-warning-cond)
+                           'warning)))
 
 
 ;; ----
@@ -60,21 +60,21 @@ error handling code from normal operational code."
     "assert-error checks that the right error is thrown"
   (assert-equal 3 (my-divide 6 2))
   (assert-error 'my-div-by-zero-error (my-divide 6 0))
-  (assert-error ____ (my-divide 6 "zero")))
+  (assert-error 'my-non-number-args-error (my-divide 6 "zero")))
 
 
 (define-test test-handle-errors
     "the handler case is like a case statement which can capture errors
      and warnings, and execute appropriate forms in those conditions."
-  (assert-equal ___
+  (assert-equal 3
                 (handler-case (my-divide 6 2)
                   (my-div-by-zero-error (condition) :zero-div-error)
                   (my-non-number-args-error (condition) :bad-args)))
-  (assert-equal ___
+  (assert-equal :zero-div-error
                 (handler-case (my-divide 6 0)
                   (my-div-by-zero-error (condition) :zero-div-error)
                   (my-non-number-args-error (condition) :bad-args)))
-  (assert-equal ___
+  (assert-equal :bad-args
                 (handler-case (my-divide 6 "woops")
                   (my-div-by-zero-error (condition) :zero-div-error)
                   (my-non-number-args-error (condition) :bad-args))))
@@ -98,7 +98,7 @@ http://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node312.html"
 
 ;; This function is designed to take loglines, and report what type they are.
 ;; It can also throw errors, like div-by-zero above, but the errors now carry some
-;;  additional information carried within the error itself.
+;; additional information carried within the error itself.
 
 (defun get-logline-type (in-line)
   (if (not (typep in-line 'string))
@@ -107,20 +107,21 @@ http://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node312.html"
   (cond
     ((equal 0 (search "TIMESTAMP" in-line)) :timestamp-logline-type)
     ((if (equal 0 (search "HTTP" in-line)) :http-logline-type))
-    ;; if we don't recognize the first token,  throw a logline-parse-error, and set the :reason and :original-line
+    ;; if we don't recognize the first token, throw a logline-parse-error,
+    ;; and set the :reason and :original-line
     (t (error 'logline-parse-error :original-line in-line :reason :unknown-token-reason))))
 
 
 (define-test test-errors-have-slots
-    (assert-equal ____
+    (assert-equal :timestamp-logline-type
                   (handler-case (get-logline-type "TIMESTAMP y13m01d03")
                     (logline-parse-error (condition) (list (reason condition) (original-line condition)))))
-    (assert-equal ____
+    (assert-equal :http-logline-type
                   (handler-case (get-logline-type "HTTP access 128.0.0.100")
                     (logline-parse-error (condition) (list (reason condition) (original-line condition)))))
-    (assert-equal ____
+    (assert-equal '(:unknown-token-reason "bogus logline")
                   (handler-case (get-logline-type "bogus logline")
                     (logline-parse-error (condition) (list (reason condition) (original-line condition)))))
-    (assert-equal ____
+    (assert-equal '(:bad-type-reason 5555)
                   (handler-case (get-logline-type 5555)
                     (logline-parse-error (condition) (list (reason condition) (original-line condition))))))
