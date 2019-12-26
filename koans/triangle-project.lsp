@@ -15,10 +15,27 @@
 
 "you need to write the triangle method"
 
-(define-condition triangle-error  (error) ())
+(defun valid-triangle-by-lengths-p (a b c) ; based on Heron's formula
+  (let* ((semi-perimeter (/ (+ a b c) 2))
+         (area (sqrt (* semi-perimeter
+                        (- semi-perimeter a)
+                        (- semi-perimeter b)
+                        (- semi-perimeter c)))))
+    (cond
+      ((or (<= a 0) (<= b 0) (<= c 0)) nil)
+      ((complexp area) nil)
+      ((<= area 0) nil)
+      (t t))))
+
+(define-condition triangle-error (error) ())
 
 (defun triangle (a b c)
-  :write-me)
+  (if (valid-triangle-by-lengths-p a b c)
+      (cond
+        ((= a b c) :equilateral)
+        ((or (= a b) (= a c) (= b c)) :isosceles)
+        (t :scalene))
+      (error 'triangle-error)))
 
 
 (define-test test-equilateral-triangles-have-equal-sides
