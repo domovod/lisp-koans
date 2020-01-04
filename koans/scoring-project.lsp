@@ -50,8 +50,43 @@
 ; Your goal is to write the score method.
 
 (defun score (dice)
-  ; You need to write this method
-)
+  (if (consp dice)
+      (let ((prepared-dice-rolls (prepare-dice-rolls dice)))
+        ;; (print prepared-dice-rolls)
+        (calculate-score prepared-dice-rolls))
+      0))
+
+(defun calculate-score (lst)
+  (calculate 0 (car lst) (cdr lst)))
+
+(defun calculate (s pair lst)
+  (if (null lst)
+      (+ s (calculate-pair pair))
+      (let ((current (calculate-pair pair)))
+        (calculate (+ s current) (car lst) (cdr lst)))))
+
+(defun calculate-pair (pair)
+  (let ((elt (car pair))
+        (qty (cdr pair)))
+    (cond
+      ((and (eql elt 1) (> qty 3)) (+ (* 1000 (floor qty 3)) (* 100 (mod qty 3))))
+      ((and (eql elt 1) (eql qty 3)) 1000)
+      ((and (eql elt 1) (< qty 3)) (* qty 100))
+      ((and (eql elt 5) (> qty 3)) (+ (* 500 (floor qty 3)) (* 50 (mod qty 3))))
+      ((and (eql elt 5) (< qty 3)) (* qty 50))
+      ((>= qty 3) (* elt 100))
+      (t 0))))
+
+(defun prepare-dice-rolls (lst)
+  (unless (null lst)
+    (let ((pair)
+          (pairs nil))
+      (dolist (elt lst)
+        (setf pair (assoc elt pairs))
+        (if pair
+            (setf (cdr pair) (1+ (cdr pair)))
+            (setf pairs (acons elt 1 pairs))))
+      pairs)))
 
 (define-test test-score-of-an-empty-list-is-zero
     (assert-equal 0 (score nil)))
