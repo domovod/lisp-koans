@@ -19,20 +19,20 @@
 ;; a simple set of dice.  There are only two operations on the dice,
 ;; reading the values, and re-rolling.
 
-
 ;;  YOU WRITE THIS PART:
 (defclass dice-set ()
-  () ;; WRITE DICE-SET CLASS BODY HERE
-)
+  ((dice-rolls :reader get-values :writer roll)))
 
 (defmethod get-values ((object dice-set))
-  ;; WRITE GET-VALUES METHOD DEFINITION HERE
-)
+  (slot-value object 'dice-rolls))
 
 (defmethod roll (how-many (object dice-set))
-  ;; WRITE ROLL METHOD DEFINITION HERE
-)
-
+  (let ((sides (vector 1 2 3 4 5 6))
+        (dice-rolls nil))
+    (dotimes (n how-many)
+      (push (elt sides (random 6)) dice-rolls))
+    (setf (slot-value object 'dice-rolls) dice-rolls)
+    dice-rolls))
 
 (define-test test-create-dice-set
 ;; tests making an instance of the dice-set
